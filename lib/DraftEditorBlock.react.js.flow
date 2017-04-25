@@ -13,43 +13,43 @@
 
 'use strict';
 
-const ContentBlock = require('ContentBlock');
-const ContentState = require('ContentState');
-const DraftEditorLeaf = require('DraftEditorLeaf.react');
-const DraftOffsetKey = require('DraftOffsetKey');
-const React = require('React');
-const ReactDOM = require('ReactDOM');
-const Scroll = require('Scroll');
-const SelectionState = require('SelectionState');
-const Style = require('Style');
-const UnicodeBidi = require('UnicodeBidi');
-const UnicodeBidiDirection = require('UnicodeBidiDirection');
+const ContentBlock = require('./ContentBlock');
+const ContentState = require('./ContentState');
+const DraftEditorLeaf = require('./DraftEditorLeaf.react');
+const DraftOffsetKey = require('./DraftOffsetKey');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const Scroll = require('fbjs/lib/Scroll');
+const SelectionState = require('./SelectionState');
+const Style = require('fbjs/lib/Style');
+const UnicodeBidi = require('fbjs/lib/UnicodeBidi');
+const UnicodeBidiDirection = require('fbjs/lib/UnicodeBidiDirection');
 
-const cx = require('cx');
-const getElementPosition = require('getElementPosition');
-const getScrollPosition = require('getScrollPosition');
-const getViewportDimensions = require('getViewportDimensions');
-const nullthrows = require('nullthrows');
+const cx = require('fbjs/lib/cx');
+const getElementPosition = require('fbjs/lib/getElementPosition');
+const getScrollPosition = require('fbjs/lib/getScrollPosition');
+const getViewportDimensions = require('fbjs/lib/getViewportDimensions');
+const nullthrows = require('fbjs/lib/nullthrows');
 
-import type {BidiDirection} from 'UnicodeBidiDirection';
-import type {DraftDecoratorType} from 'DraftDecoratorType';
-import type {List} from 'immutable';
+import type { BidiDirection } from 'fbjs/lib/UnicodeBidiDirection';
+import type { DraftDecoratorType } from './DraftDecoratorType';
+import type { List } from 'immutable';
 
 const SCROLL_BUFFER = 10;
 
 type Props = {
-  contentState: ContentState,
-  block: ContentBlock,
-  customStyleMap: Object,
-  customStyleFn: Function,
-  tree: List<any>,
-  selection: SelectionState,
-  decorator: DraftDecoratorType,
-  forceSelection: boolean,
-  direction: BidiDirection,
-  blockProps?: Object,
-  startIndent?: boolean,
-  blockStyleFn: Function,
+  contentState: ContentState;
+  block: ContentBlock;
+  customStyleMap: Object;
+  customStyleFn: Function;
+  tree: List<any>;
+  selection: SelectionState;
+  decorator: DraftDecoratorType;
+  forceSelection: boolean;
+  direction: BidiDirection;
+  blockProps?: Object;
+  startIndent?: boolean;
+  blockStyleFn: Function;
 };
 
 /**
@@ -60,18 +60,7 @@ type Props = {
  */
 class DraftEditorBlock extends React.Component {
   shouldComponentUpdate(nextProps: Props): boolean {
-    return (
-      this.props.block !== nextProps.block ||
-      this.props.tree !== nextProps.tree ||
-      this.props.direction !== nextProps.direction ||
-      (
-        isBlockOnSelectionEdge(
-          nextProps.selection,
-          nextProps.block.getKey()
-        ) &&
-        nextProps.forceSelection
-      )
-    );
+    return this.props.block !== nextProps.block || this.props.tree !== nextProps.tree || this.props.direction !== nextProps.direction || isBlockOnSelectionEdge(nextProps.selection, nextProps.block.getKey()) && nextProps.forceSelection;
   }
 
   /**
@@ -104,10 +93,7 @@ class DraftEditorBlock extends React.Component {
       var viewportHeight = getViewportDimensions().height;
       scrollDelta = nodeBottom - viewportHeight;
       if (scrollDelta > 0) {
-        window.scrollTo(
-          scrollPosition.x,
-          scrollPosition.y + scrollDelta + SCROLL_BUFFER
-        );
+        window.scrollTo(scrollPosition.x, scrollPosition.y + scrollDelta + SCROLL_BUFFER);
       }
     }
   }
@@ -126,21 +112,7 @@ class DraftEditorBlock extends React.Component {
         var offsetKey = DraftOffsetKey.encode(blockKey, ii, jj);
         var start = leaf.get('start');
         var end = leaf.get('end');
-        return (
-          <DraftEditorLeaf
-            key={offsetKey}
-            offsetKey={offsetKey}
-            block={block}
-            start={start}
-            selection={hasSelection ? this.props.selection : undefined}
-            forceSelection={this.props.forceSelection}
-            text={text.slice(start, end)}
-            styleSet={block.getInlineStyleAt(start)}
-            customStyleMap={this.props.customStyleMap}
-            customStyleFn={this.props.customStyleFn}
-            isLast={ii === lastLeafSet && jj === lastLeaf}
-          />
-        );
+        return <DraftEditorLeaf key={offsetKey} offsetKey={offsetKey} block={block} start={start} selection={hasSelection ? this.props.selection : undefined} forceSelection={this.props.forceSelection} text={text.slice(start, end)} styleSet={block.getInlineStyleAt(start)} customStyleMap={this.props.customStyleMap} customStyleFn={this.props.customStyleFn} isLast={ii === lastLeafSet && jj === lastLeaf} />;
       }).toArray();
 
       var decoratorKey = leafSet.get('decoratorKey');
@@ -161,60 +133,37 @@ class DraftEditorBlock extends React.Component {
 
       var decoratorProps = decorator.getPropsForKey(decoratorKey);
       var decoratorOffsetKey = DraftOffsetKey.encode(blockKey, ii, 0);
-      var decoratedText = text.slice(
-        leavesForLeafSet.first().get('start'),
-        leavesForLeafSet.last().get('end')
-      );
+      var decoratedText = text.slice(leavesForLeafSet.first().get('start'), leavesForLeafSet.last().get('end'));
 
       // Resetting dir to the same value on a child node makes Chrome/Firefox
       // confused on cursor movement. See http://jsfiddle.net/d157kLck/3/
-      var dir = UnicodeBidiDirection.getHTMLDirIfDifferent(
-        UnicodeBidi.getDirection(decoratedText),
-        this.props.direction,
-      );
+      var dir = UnicodeBidiDirection.getHTMLDirIfDifferent(UnicodeBidi.getDirection(decoratedText), this.props.direction);
 
-      return (
-        <DecoratorComponent
-          {...decoratorProps}
-          contentState={this.props.contentState}
-          decoratedText={decoratedText}
-          dir={dir}
-          key={decoratorOffsetKey}
-          entityKey={block.getEntityAt(leafSet.get('start'))}
-          offsetKey={decoratorOffsetKey}>
+      return <DecoratorComponent {...decoratorProps} contentState={this.props.contentState} decoratedText={decoratedText} dir={dir} key={decoratorOffsetKey} entityKey={block.getEntityAt(leafSet.get('start'))} offsetKey={decoratorOffsetKey}>
           {leaves}
-        </DecoratorComponent>
-      );
+        </DecoratorComponent>;
     }).toArray();
   }
 
   render(): React.Element<any> {
-    const {direction, offsetKey} = this.props;
+    const { direction, offsetKey } = this.props;
     const className = cx({
       'public/DraftStyleDefault/block': true,
       'public/DraftStyleDefault/ltr': direction === 'LTR',
-      'public/DraftStyleDefault/rtl': direction === 'RTL',
+      'public/DraftStyleDefault/rtl': direction === 'RTL'
     });
 
-    return (
-      <div data-offset-key={offsetKey} className={className}>
+    return <div data-offset-key={offsetKey} className={className}>
         {this._renderChildren()}
-      </div>
-    );
+      </div>;
   }
 }
 
 /**
  * Return whether a block overlaps with either edge of the `SelectionState`.
  */
-function isBlockOnSelectionEdge(
-  selection: SelectionState,
-  key: string
-): boolean {
-  return (
-    selection.getAnchorKey() === key ||
-    selection.getFocusKey() === key
-  );
+function isBlockOnSelectionEdge(selection: SelectionState, key: string): boolean {
+  return selection.getAnchorKey() === key || selection.getFocusKey() === key;
 }
 
 module.exports = DraftEditorBlock;

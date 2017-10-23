@@ -12,22 +12,22 @@
 
 'use strict';
 
+import type {RawDraftContentState} from 'RawDraftContentState';
+
 var ContentBlock = require('ContentBlock');
 var ContentState = require('ContentState');
 var DraftEntity = require('DraftEntity');
+var Immutable = require('immutable');
 
 var createCharacterList = require('createCharacterList');
 var decodeEntityRanges = require('decodeEntityRanges');
 var decodeInlineStyleRanges = require('decodeInlineStyleRanges');
 var generateRandomKey = require('generateRandomKey');
-var Immutable = require('immutable');
-
-import type {RawDraftContentState} from 'RawDraftContentState';
 
 var {Map} = Immutable;
 
 function convertFromRawToDraftState(
-  rawState: RawDraftContentState
+  rawState: RawDraftContentState,
 ): ContentState {
   var {blocks, entityMap} = rawState;
 
@@ -40,7 +40,7 @@ function convertFromRawToDraftState(
       var {type, mutability, data} = encodedEntity;
       var newKey = DraftEntity.__create(type, mutability, data || {});
       fromStorageToLocal[storageKey] = newKey;
-    }
+    },
   );
 
   var contentBlocks = blocks.map(
@@ -74,7 +74,7 @@ function convertFromRawToDraftState(
       var characterList = createCharacterList(inlineStyles, entities);
 
       return new ContentBlock({key, type, text, depth, characterList, data});
-    }
+    },
   );
 
   return ContentState.createFromBlockArray(contentBlocks);
